@@ -9,7 +9,7 @@ int get_sqrt(const int n)  //get the
     return target;
 }
 
-bool is_prime(int n)
+bool is_prime(const int n)
 {
     for (int i = 2;i !=get_sqrt(n)+1;i++)
     {
