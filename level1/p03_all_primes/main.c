@@ -5,18 +5,18 @@
 
 void find_su(const int num, int *prime)
 {
-    bool state[num+1] = {};
+    bool is_composite[num+1] = {};
 
     int n_prime = 0;
     for (int i = 2; i <=num; ++i)
     {
-        if (!state[i])
+        if (!is_composite[i])
         {
             prime[n_prime++] = i;
         }
         for (int j = 0; i*prime[j]<=num && j<=n_prime;++j)
         {
-            state[i*prime[j]] = 1;
+            is_composite[i*prime[j]] = 1;
             if (i%prime[j] == 0) break;
         }
     }
