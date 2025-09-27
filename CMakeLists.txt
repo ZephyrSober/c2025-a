@@ -23,5 +23,8 @@ add_executable(p08_push_boxes  level1/p08_push_boxes/main.c)
 add_executable(p09_linked_list  level1/p09_linked_list/main.c)
 
 add_executable(p10_warehouse  level1/p10_warehouse/main.c)
-add_executable(queue queue.c)
-add_executable(stack stack.c)
+add_executable(queue extend_level/queue.c)
+add_executable(stack extend_level/stack.c
+)
+add_executable(antipoland extend_level/antipoland.c
+)
