@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <conio.h>
 #define HEIGHT 8
 #define WIDTH 8
 #define UP 'w'
@@ -17,7 +18,7 @@ typedef struct Point Point;
 typedef enum{wall, player, door,air} Object;
 void creat_map(int h, int w,Object map[][w], char* shape, Point* player_p);
 void draw(int h, int w,Object map[][w]);
-int move(int dx, int dy,int h, int w,Object map[][w],Point* player_p);
+int move(int dx, int dy,int h, int w,Object map[][w],Point* entity);
 
 int main() {
     Point player_p = {3,1};
@@ -34,9 +35,9 @@ int main() {
 
     char act;
     printf("enjoy it\npress any key to start");
-    act = getchar();
+    act = _getch();
     draw(HEIGHT,WIDTH,map);
-    while ((act = getchar()) != 'q') {
+    while ((act = _getch()) != 'q') {
         int result =0;
         switch (act) {
         case UP:
@@ -115,16 +116,16 @@ void draw(int h, int w,Object map[][w]) {
     }
 }
 
-int move(int dx, int dy,int h, int w,Object map[][w],Point* player_p) {
-    int new_x = player_p->x + dx, new_y = player_p->y + dy;
+int move(int dx, int dy,int h, int w,Object map[][w],Point* entity) {
+    int new_x = entity->x + dx, new_y = entity->y + dy;
     switch (map[new_y][new_x]) {
     case wall:
         return 0;
     case air:
-        map[player_p->y][player_p->x] = air;
-        player_p->x += dx;
-        player_p->y += dy;
-        map[player_p->y][player_p->x] = player;
+        map[entity->y][entity->x] = air;
+        entity->x += dx;
+        entity->y += dy;
+        map[entity->y][entity->x] = player;
         return 1;
     case door:
         return 2;

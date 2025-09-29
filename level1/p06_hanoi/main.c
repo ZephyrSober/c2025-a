@@ -18,7 +18,6 @@ Stack* create_stack(char name,int size);
 void inStack(Stack* stack,int data);
 int outStack(Stack* stack);
 void move(Stack* origin, Stack* target, Stack* help, int lenth);
-char repel(char* all,char c1,char c2);
 int spy_top(Stack* pole);
 
 int main() {
