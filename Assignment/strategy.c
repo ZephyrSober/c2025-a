@@ -1,4 +1,6 @@
 #include "strategy.h"
+
+#include <complex.h>
 #include <stdlib.h>
 #include "List.h"
 #include <math.h>
@@ -8,6 +10,7 @@
 #define INF 9999.
 #define ROUNDS 1000
 #define MAXSTEP 100
+#define WINCOUNT 5
 
 Node* mcts_decide(Node* root) {
     for (int i = 0; i!= ROUNDS ;i++) {
@@ -32,10 +35,10 @@ Node* mcts_decide(Node* root) {
     return p;
 }
 
-Node* create_node(char state[SIZE][SIZE],int valid_range[2][2],List* children,Node* parent) {
+Node* create_node(char state[BOARDSIZE][BOARDSIZE],int valid_range[2][2],List* children,Node* parent,Point* action) {
     Node* node = (Node*)malloc(sizeof(Node));
-    for (int i = 0;i != SIZE ; i++) {
-        for (int j = 0; j!= SIZE; j++) {
+    for (int i = 0;i != BOARDSIZE ; i++) {
+        for (int j = 0; j!= BOARDSIZE; j++) {
             node->state[i][j] = state[i][j];
         }
     }
@@ -46,15 +49,27 @@ Node* create_node(char state[SIZE][SIZE],int valid_range[2][2],List* children,No
     node->valid_ranage[1][0]=valid_range[1][0];
     node->valid_ranage[1][1]=valid_range[1][1];
     node->parant = parent;
+    node->latest_action = action;
     return node;
 }
 
 List* get_all_actions(Node* node) {
-    //todo
+    List* actions = create_list(0,NULL);
+    for (int i = node->valid_ranage[0][0]-2 ; i<=node->valid_ranage[1][0]+2 ; i++) {
+        if (i<0||i>=BOARDSIZE) continue;
+        for (int j = node->valid_ranage[0][1]-2 ; j<=node->valid_ranage[1][1]+2 ; j++) {
+            if (j<0||j>=BOARDSIZE) continue;
+            if (node->state[i][j]!='0') continue;
+            Point* action = (Point*)malloc(sizeof(Point));
+            action->x = i;action->y = j;
+            append(actions,action);
+        }
+    }
+    return actions;
 }
 
 Node* apply_action(Node* origin, Point* action) {
-    Node* new_node = create_node(origin->state,origin->valid_ranage,NULL,origin);
+    Node* new_node = create_node(origin->state,origin->valid_ranage,NULL,origin,action);
     new_node->state[action->x][action->y] = '2';
     new_node->valid_ranage[0][0] = (action->x<=new_node->valid_ranage[0][0]) ? action->x : new_node->valid_ranage[0][0];
     new_node->valid_ranage[0][1] = (action->y<=new_node->valid_ranage[0][1]) ? action->y : new_node->valid_ranage[0][1];
@@ -65,6 +80,24 @@ Node* apply_action(Node* origin, Point* action) {
 
 bool is_fully_expand(Node* node) {
     return node->untryed_actions->lenth == 0;
+}
+
+bool is_terminal(char state[BOARDSIZE][BOARDSIZE], Point* latest_action,char player) {
+    int directions[4][2] = {{1,0},{0,1},{1,1},{1,-1}};
+    int x=latest_action->x,y=latest_action->y;
+    for (int i=0;i!=4;i++) {
+        int count = 1;
+        int dx=directions[i][0],dy=directions[i][1];
+        for (int j=-WINCOUNT+1;j<WINCOUNT;j++) {
+            int xn = x+dx*j,yn = y+dy*j;
+            if (xn<0||xn>=BOARDSIZE||yn<0||yn>=BOARDSIZE) continue;
+            if (xn==x&&yn==y) continue;
+            if (state[xn][yn]!=player) continue;
+            count++;
+        }
+        if (count >= WINCOUNT) return true;
+    }
+    return false;
 }
 
 double ucb(double visits, double value, double time, double c) {

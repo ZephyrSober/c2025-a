@@ -14,7 +14,7 @@ struct List {
 };
 typedef struct List List;
 
-ListNode* to_index(List* start, int index);
+ListNode* to_index(List* list, int index);
 ListNode* move(ListNode* start,int index);
 ListNode* insert(ListNode* node, int value);
 int find_value(List* list, int target, int rank);
@@ -50,8 +50,8 @@ ListNode* move(ListNode* start,int index) {
     return p;
 }
 
-ListNode* to_index(List* start,int index) {
-    ListNode* p = start->head;
+ListNode* to_index(List* list,int index) {
+    ListNode* p = list->head;
     for (int i = 0; i!= index; i++) {
         p = p->next;
     }

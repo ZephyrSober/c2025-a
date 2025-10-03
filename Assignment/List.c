@@ -1,15 +1,16 @@
 #include "List.h"
-#include "strategy.h"
 #include "utils.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <bemapiset.h>
+
 List* insert(List* list, int index, void* value) {
-    if (index == 0) {
+    if (index == -1) {
         ListNode* innode = (ListNode*)malloc(sizeof(ListNode));
         innode->value = value;
-        innode->next = list->head;
+        innode->next = NULL;
         list->head = innode;
         list->lenth++;
         return list;
@@ -52,10 +53,12 @@ ListNode* move(ListNode* start,int index) {
     return p;
 }
 
-ListNode* to_index(List* start,int index) {
-    ListNode* p = start->head;
-    for (int i = 0; i!= index; i++) {
-        p = p->next;
+ListNode* to_index(List* list,int index) {
+    ListNode* p = list->head;
+    int i =0;
+    while (i!=index) {
+        p=p->next;
+        i++;
     }
     return p;
 }
@@ -112,4 +115,11 @@ Point* pop_action(List* actions) {
     Point* value = pop_node->value;
     free(pop_node);
     return value;
+}
+
+void print_actions(List* actions) {
+    for (int i = 0; i!=actions->lenth; i++) {
+        int x = ((Point*)to_index(actions,i)->value)->x , y = ((Point*)to_index(actions,i)->value)->y;
+        printf("(%d,%d)",x,y);
+    }
 }

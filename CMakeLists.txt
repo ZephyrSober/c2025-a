@@ -34,10 +34,13 @@ add_executable(stack extend_level/stack.c
 )
 add_executable(antipoland extend_level/antipoland.c
 )
-add_executable(MCTS 课程设计/MCTS.c
-        课程设计/strategy.c
-        课程设计/strategy.h
-        课程设计/List.c
-        课程设计/List.h
-        课程设计/utils.c
-        课程设计/utils.h)
+add_executable(MCTS Assignment/MCTS.c
+        Assignment/strategy.c
+        Assignment/strategy.h
+        Assignment/List.c
+        Assignment/List.h
+        Assignment/utils.c
+        Assignment/utils.h
+        Assignment/test.c
+        Assignment/test.h)
+add_executable(mxts_test Assignment/test.c)
