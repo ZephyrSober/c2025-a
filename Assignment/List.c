@@ -123,3 +123,8 @@ void print_actions(List* actions) {
         printf("(%d,%d)",x,y);
     }
 }
+
+ListNode* random_choose(List* list) {
+    int i = rand() % list->lenth;
+    return to_index(list,i);
+}

@@ -1,11 +1,9 @@
 #include "strategy.h"
-
 #include <complex.h>
 #include <stdlib.h>
 #include "List.h"
 #include <math.h>
 #include <stdbool.h>
-#include <windows.h>
 #include "utils.h"
 #define INF 9999.
 #define ROUNDS 1000
@@ -16,10 +14,15 @@ Node* mcts_decide(Node* root) {
     for (int i = 0; i!= ROUNDS ;i++) {
         Node* leaf = choose(root,(double)i);
         Node* simulate_base = expand(leaf);
-        double result = simulate(simulate_base);
+        double result = 0;
+        if (is_terminal(simulate_base->state,simulate_base->latest_action,simulate_base->is_player?'1':'2')) {
+            result = simulate_base->is_player?0:1;
+        }else {
+            result = simulate(simulate_base);
+        }
         for (Node* p = leaf; leaf != NULL; p = p->parant) {
             p->visits++;
-            p->value+=result;
+            p->value+=p->is_player?1-result:result;
         }
     }
     Node* p = NULL;
@@ -35,7 +38,7 @@ Node* mcts_decide(Node* root) {
     return p;
 }
 
-Node* create_node(char state[BOARDSIZE][BOARDSIZE],int valid_range[2][2],List* children,Node* parent,Point* action) {
+Node* create_node(char state[BOARDSIZE][BOARDSIZE],int valid_range[2][2],List* children,Node* parent,Point* latest_action) {
     Node* node = (Node*)malloc(sizeof(Node));
     for (int i = 0;i != BOARDSIZE ; i++) {
         for (int j = 0; j!= BOARDSIZE; j++) {
@@ -49,7 +52,8 @@ Node* create_node(char state[BOARDSIZE][BOARDSIZE],int valid_range[2][2],List* c
     node->valid_ranage[1][0]=valid_range[1][0];
     node->valid_ranage[1][1]=valid_range[1][1];
     node->parant = parent;
-    node->latest_action = action;
+    node->latest_action = latest_action;
+    node->is_player = (parent == NULL)?true:!parent->is_player;
     return node;
 }
 
@@ -133,7 +137,33 @@ Node* expand(Node* leaf) {
 }
 
 double simulate(Node* simulate_base) {
-    for (int i = 0; i!=MAXSTEP;i++) {
-
+    Node* current_node = simulate_base;
+    Node* parent = NULL;
+    Node* grand_parent = NULL;
+    double result = 0;
+    int i = 0;
+    for (; i!=MAXSTEP;i++) {
+        parent = current_node;
+        current_node = apply_action(parent,(Point*)(random_choose(parent->untryed_actions)->value));
+        if (i>=2) {
+            grand_parent = parent->parant;
+            free(grand_parent);
+            grand_parent = NULL;
+        }
+        if (is_terminal(current_node->state,current_node->latest_action,current_node->is_player?'1':'2')) {
+            result = current_node->is_player?0:1;
+            if (i==1) {
+                free(current_node);
+                current_node = NULL;
+            }if(i>=2) {
+                free(current_node);
+                free(parent);
+                current_node = NULL;
+                parent = NULL;
+            }
+            return result;
+        }
     }
+    return 0.5;
+
 }

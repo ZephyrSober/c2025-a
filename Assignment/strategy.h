@@ -13,13 +13,14 @@ struct Node {
     struct Node* parant;
     List* untryed_actions;
     Point* latest_action;
+    bool is_player;
 };
 typedef struct Node Node;
 
 Node* expand(Node* leaf);
 Node* mcts_decide(Node* root);
 Node* choose(Node* root,double time);
-Node* create_node(char state[BOARDSIZE][BOARDSIZE],int valid_range[2][2],List* children,Node* parent,Point* action);
+Node* create_node(char state[BOARDSIZE][BOARDSIZE],int valid_range[2][2],List* children,Node* parent,Point* latest_action);
 List* get_all_actions(Node* node);
 bool is_fully_expand(Node* node);
 double ucb(double visits, double value, double time, double c);

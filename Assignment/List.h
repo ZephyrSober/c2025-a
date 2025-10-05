@@ -22,5 +22,6 @@ List* delete(List* list, int index);
 Point* pop_action(List* actions);
 List* append(List* list, void* value);
 void print_actions(List* actions);
+ListNode* random_choose(List* list);
 
 #endif //C2025_CHALLENGE_LIST_H

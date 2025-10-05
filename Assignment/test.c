@@ -45,3 +45,7 @@ void test_get_all_actions() {
     List* actions = get_all_actions(node);
     print_actions(actions);
 }
+
+void mcts(){
+
+})
