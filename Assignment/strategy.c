@@ -4,10 +4,12 @@
 #include "List.h"
 #include <math.h>
 #include <stdbool.h>
+#include <stdio.h>
+
 #include "utils.h"
 #define INF 9999.
 #define ROUNDS 1000
-#define MAXSTEP 100
+#define MAXSTEP 5
 #define WINCOUNT 5
 
 Node* mcts_decide(Node* root) {
@@ -20,7 +22,7 @@ Node* mcts_decide(Node* root) {
         }else {
             result = simulate(simulate_base);
         }
-        for (Node* p = leaf; leaf != NULL; p = p->parant) {
+        for (Node* p = leaf; p != NULL; p = p->parant) {
             p->visits++;
             p->value+=p->is_player?1-result:result;
         }
@@ -45,8 +47,6 @@ Node* create_node(char state[BOARDSIZE][BOARDSIZE],int valid_range[2][2],List* c
             node->state[i][j] = state[i][j];
         }
     }
-    node->children = children;
-    node->untryed_actions = get_all_actions(node);
     node->valid_ranage[0][0]=valid_range[0][0];
     node->valid_ranage[0][1]=valid_range[0][1];
     node->valid_ranage[1][0]=valid_range[1][0];
@@ -54,6 +54,9 @@ Node* create_node(char state[BOARDSIZE][BOARDSIZE],int valid_range[2][2],List* c
     node->parant = parent;
     node->latest_action = latest_action;
     node->is_player = (parent == NULL)?true:!parent->is_player;
+    node->untryed_actions = get_all_actions(node);
+    node->children = children;
+    if (children == NULL) node->children = create_list(0,NULL);
     return node;
 }
 
@@ -105,9 +108,10 @@ bool is_terminal(char state[BOARDSIZE][BOARDSIZE], Point* latest_action,char pla
 }
 
 double ucb(double visits, double value, double time, double c) {
-    if (visits == 0) {
+    if (visits <= 0.001&&visits>=-0.001) {
         return INF;
     }
+    // printf("%lf\n",value/visits + c*sqrt(log(time)/visits));
     return value/visits + c*sqrt(log(time)/visits);
 }
 
@@ -118,7 +122,7 @@ Node* choose(Node* root, double time) {
         double max=0.;
         for (int i = 0; i!=iter->children->lenth; i++) {
             Node *current_node = to_index(iter->children,i)->value;
-            double current_ucb = ucb(current_node->visits,current_node->value,time,sqrt(2));
+            double current_ucb = ucb(current_node->visits,current_node->value,time,0.5);
             if (current_ucb>=max) {
                 max = current_ucb;
                 p = current_node;
@@ -164,6 +168,6 @@ double simulate(Node* simulate_base) {
             return result;
         }
     }
-    return 0.5;
+    return 0;
 
 }
