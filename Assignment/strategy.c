@@ -11,8 +11,9 @@
 #define ROUNDS 1000
 #define MAXSTEP 5
 #define WINCOUNT 5
+#define EXPLORERANGE 1
 
-Node* mcts_decide(Node* root) {
+Point* mcts_decide(Node* root) {
     for (int i = 0; i!= ROUNDS ;i++) {
         Node* leaf = choose(root,(double)i);
         Node* simulate_base = expand(leaf);
@@ -37,7 +38,7 @@ Node* mcts_decide(Node* root) {
             p = current_node;
         }
     }
-    return p;
+    return p->latest_action;
 }
 
 Node* create_node(char state[BOARDSIZE][BOARDSIZE],int valid_range[2][2],List* children,Node* parent,Point* latest_action) {
@@ -47,10 +48,10 @@ Node* create_node(char state[BOARDSIZE][BOARDSIZE],int valid_range[2][2],List* c
             node->state[i][j] = state[i][j];
         }
     }
-    node->valid_ranage[0][0]=valid_range[0][0];
-    node->valid_ranage[0][1]=valid_range[0][1];
-    node->valid_ranage[1][0]=valid_range[1][0];
-    node->valid_ranage[1][1]=valid_range[1][1];
+    node->valid_range[0][0]=valid_range[0][0];
+    node->valid_range[0][1]=valid_range[0][1];
+    node->valid_range[1][0]=valid_range[1][0];
+    node->valid_range[1][1]=valid_range[1][1];
     node->parant = parent;
     node->latest_action = latest_action;
     node->is_player = (parent == NULL)?true:!parent->is_player;
@@ -62,9 +63,9 @@ Node* create_node(char state[BOARDSIZE][BOARDSIZE],int valid_range[2][2],List* c
 
 List* get_all_actions(Node* node) {
     List* actions = create_list(0,NULL);
-    for (int i = node->valid_ranage[0][0]-2 ; i<=node->valid_ranage[1][0]+2 ; i++) {
+    for (int i = node->valid_range[0][0]-EXPLORERANGE ; i<=node->valid_range[1][0]+EXPLORERANGE ; i++) {
         if (i<0||i>=BOARDSIZE) continue;
-        for (int j = node->valid_ranage[0][1]-2 ; j<=node->valid_ranage[1][1]+2 ; j++) {
+        for (int j = node->valid_range[0][1]-EXPLORERANGE ; j<=node->valid_range[1][1]+EXPLORERANGE ; j++) {
             if (j<0||j>=BOARDSIZE) continue;
             if (node->state[i][j]!='0') continue;
             Point* action = (Point*)malloc(sizeof(Point));
@@ -76,12 +77,12 @@ List* get_all_actions(Node* node) {
 }
 
 Node* apply_action(Node* origin, Point* action) {
-    Node* new_node = create_node(origin->state,origin->valid_ranage,NULL,origin,action);
+    Node* new_node = create_node(origin->state,origin->valid_range,NULL,origin,action);
     new_node->state[action->x][action->y] = '2';
-    new_node->valid_ranage[0][0] = (action->x<=new_node->valid_ranage[0][0]) ? action->x : new_node->valid_ranage[0][0];
-    new_node->valid_ranage[0][1] = (action->y<=new_node->valid_ranage[0][1]) ? action->y : new_node->valid_ranage[0][1];
-    new_node->valid_ranage[1][0] = (action->x>=new_node->valid_ranage[1][0]) ? action->x : new_node->valid_ranage[1][0];
-    new_node->valid_ranage[1][1] = (action->y>=new_node->valid_ranage[1][1]) ? action->y : new_node->valid_ranage[1][1];
+    new_node->valid_range[0][0] = (action->x<=new_node->valid_range[0][0]) ? action->x : new_node->valid_range[0][0];
+    new_node->valid_range[0][1] = (action->y<=new_node->valid_range[0][1]) ? action->y : new_node->valid_range[0][1];
+    new_node->valid_range[1][0] = (action->x>=new_node->valid_range[1][0]) ? action->x : new_node->valid_range[1][0];
+    new_node->valid_range[1][1] = (action->y>=new_node->valid_range[1][1]) ? action->y : new_node->valid_range[1][1];
     return new_node;
 }
 
@@ -122,7 +123,7 @@ Node* choose(Node* root, double time) {
         double max=0.;
         for (int i = 0; i!=iter->children->lenth; i++) {
             Node *current_node = to_index(iter->children,i)->value;
-            double current_ucb = ucb(current_node->visits,current_node->value,time,0.5);
+            double current_ucb = ucb(current_node->visits,current_node->value,time,sqrt(2.));
             if (current_ucb>=max) {
                 max = current_ucb;
                 p = current_node;

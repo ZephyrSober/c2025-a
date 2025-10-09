@@ -8,7 +8,7 @@ struct Node {
     double visits;
     double value;
     char state[BOARDSIZE][BOARDSIZE];
-    int valid_ranage[2][2];
+    int valid_range[2][2];
     List* children;
     struct Node* parant;
     List* untryed_actions;
@@ -18,7 +18,7 @@ struct Node {
 typedef struct Node Node;
 
 Node* expand(Node* leaf);
-Node* mcts_decide(Node* root);
+Point* mcts_decide(Node* root);
 Node* choose(Node* root,double time);
 Node* create_node(char state[BOARDSIZE][BOARDSIZE],int valid_range[2][2],List* children,Node* parent,Point* latest_action);
 List* get_all_actions(Node* node);
