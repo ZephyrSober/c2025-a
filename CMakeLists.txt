@@ -3,6 +3,22 @@ project(c2025_challenge)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
+# ============ 在这里添加 raylib 配置 ============
+# 设置 raylib 路径（根据你的实际路径修改）
+set(RAYLIB_PATH "D:/1FILE/Program/cpp/c2025-a/raylib-5.5_win64_mingw-w64")
+
+# 包含目录
+include_directories(${RAYLIB_PATH}/include)
+
+# 链接目录
+link_directories(${RAYLIB_PATH}/lib)
+
+# Windows 系统库（所有使用 raylib 的目标都需要这些）
+set(RAYLIB_SYSTEM_LIBS
+        kernel32 user32 gdi32 winspool shell32
+        ole32 oleaut32 uuid comdlg32 advapi32 winmm
+)
+# ============ raylib 配置结束 ============
 
 add_executable(p01_running_letter level1/p01_running_letter/main.c
         level1/p01_running_letter/utils.c
@@ -42,5 +58,8 @@ add_executable(MCTS Assignment/MCTS.c
         Assignment/utils.c
         Assignment/utils.h
         Assignment/test.c
-        Assignment/test.h)
+        Assignment/test.h
+        Assignment/Gobang.c
+        Assignment/main.c)
+target_link_libraries(MCTS raylib ${RAYLIB_SYSTEM_LIBS})
 add_executable(mxts_test Assignment/test.c)

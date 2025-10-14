@@ -128,3 +128,29 @@ ListNode* random_choose(List* list) {
     int i = rand() % list->lenth;
     return to_index(list,i);
 }
+
+void destroy_list(List* list) {
+    if (list->lenth==0) {
+        free(list);
+        return;
+    }
+    for (ListNode* iter = list->head; iter != NULL;) {
+        ListNode* current = iter;
+        iter=iter->next;
+        free(current);
+    }
+    free(list);
+}
+
+List* join(List* a, List* b) {
+    if (a->lenth==0) {
+        destroy_list(a);
+        return b;
+    }
+    to_index(a,a->lenth-1)->next = b->head;
+    a->lenth += b->lenth;
+    b->head = NULL;
+    b->lenth = 0;
+    free(b);
+    return a;
+}

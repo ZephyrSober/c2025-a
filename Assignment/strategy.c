@@ -61,11 +61,50 @@ Node* create_node(char state[BOARDSIZE][BOARDSIZE],int valid_range[2][2],List* c
     return node;
 }
 
+void get_valid_range(char state[BOARDSIZE][BOARDSIZE],int valid_range[2][2]) {
+    for (int i = 0; i!=BOARDSIZE; i++) {
+        for (int j = 0; j!=BOARDSIZE; j++) {
+            valid_range[0][0] = (i<=valid_range[0][0]) ? i : valid_range[0][0];
+            valid_range[0][1] = (j<=valid_range[0][1]) ? j : valid_range[0][1];
+            valid_range[1][0] = (i>=valid_range[1][0]) ? i : valid_range[1][0];
+            valid_range[1][1] = (j>=valid_range[1][1]) ? j : valid_range[1][1];
+        }
+    }
+}
+
 List* get_all_actions(Node* node) {
+    //简单策略：
+    //第一优先级：己方活四（活四单活或者双活均可）
+    //第二优先级：对方活四
+    //第三优先级：己方双活三（连三返回两个位置，跳三返回中间位置）
+    //第四优先级：对方活三（同理）
+    //其他：搜索所有空位即可
+    int expand_valid_range[2][2] = {{node->valid_range[0][0]-EXPLORERANGE,node->valid_range[0][1]-EXPLORERANGE},{node->valid_range[1][0]+EXPLORERANGE,node->valid_range[1][1]+EXPLORERANGE}};
     List* actions = create_list(0,NULL);
-    for (int i = node->valid_range[0][0]-EXPLORERANGE ; i<=node->valid_range[1][0]+EXPLORERANGE ; i++) {
+    //first priority:
+    actions = find_pattern(node->state, expand_valid_range,6,"322224");
+    actions = join(actions,find_pattern(node->state, expand_valid_range,6,"322223"));
+    actions = join(actions,find_pattern(node->state, expand_valid_range,6,"422223"));
+    if (actions->lenth != 0) return actions;
+    //second priority:
+    actions = find_pattern(node->state, expand_valid_range,6,"311114");
+    actions = join(actions,find_pattern(node->state, expand_valid_range,6,"411113"));
+    actions = join(actions,find_pattern(node->state, expand_valid_range,6,"311113"));
+    if (actions->lenth != 0) return actions;
+    //third priority:
+    actions = find_pattern(node->state, expand_valid_range,5,"32223");
+    actions = join(actions,find_pattern(node->state, expand_valid_range,6,"022320"));
+    actions = join(actions,find_pattern(node->state, expand_valid_range,6,"023220"));
+    if (actions->lenth != 0) return actions;
+    //fourth priority:
+    actions = find_pattern(node->state, expand_valid_range,5,"31113");
+    actions = join(actions,find_pattern(node->state, expand_valid_range,6,"322323"));
+    actions = join(actions,find_pattern(node->state, expand_valid_range,6,"323223"));
+    if (actions->lenth != 0) return actions;
+    //fifth priority
+    for (int i = expand_valid_range[0][0] ; i<=expand_valid_range[1][0] ; i++) {
         if (i<0||i>=BOARDSIZE) continue;
-        for (int j = node->valid_range[0][1]-EXPLORERANGE ; j<=node->valid_range[1][1]+EXPLORERANGE ; j++) {
+        for (int j = expand_valid_range[0][1] ; j<=expand_valid_range[1][1] ; j++) {
             if (j<0||j>=BOARDSIZE) continue;
             if (node->state[i][j]!='0') continue;
             Point* action = (Point*)malloc(sizeof(Point));
@@ -74,6 +113,45 @@ List* get_all_actions(Node* node) {
         }
     }
     return actions;
+}
+
+List* find_pattern(char state[BOARDSIZE][BOARDSIZE], int valid_range[2][2], int pattern_lenth, char pattern[pattern_lenth]) {
+    //'3' in pattern means target, '4' means null
+    //为了避免对称pattern重复问题，这里只检查180°范围
+    List* result = create_list(0,NULL);
+    int directions[4][2] = {{1,0},{0,1},{1,1},{1,-1}};
+    for (int x = valid_range[0][0]; x<=valid_range[1][0]; x++) {
+        for (int y = valid_range[0][1]; y<=valid_range[1][1]; y++) {
+            for (int d = 0; d!=4; d++) {
+                int dx = directions[d][0], dy = directions[d][1];
+                if (is_match(state,x,y,dx,dy,pattern_lenth,pattern)) {
+                    for (int i = 0; i!=pattern_lenth; i++) {
+                        if (pattern[i] == '3') {
+                            Point* p = create_point(x+i*dx,y+i*dy);
+                            append(result,p);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return result;
+}
+
+bool is_match(char state[BOARDSIZE][BOARDSIZE], int x, int y, int dx, int dy, int pattern_lenth, char _pattern[pattern_lenth]) {
+    //'3' in pattern means target, '4' means null
+    char pattern[pattern_lenth] = {};
+    for (int i = 0; i!=pattern_lenth; i++) {
+        pattern[i] = _pattern[i];
+    }
+    for (int i = 0; i!= pattern_lenth;i++) {
+        if (pattern[i] == '3') pattern[i] = '0';
+        if (pattern[i] == '4') continue;
+        if (x+(pattern_lenth-1)*dx>=BOARDSIZE || x-(pattern_lenth-1)*dx>=BOARDSIZE || x+(pattern_lenth-1)*dx<0 || x+(pattern_lenth-1)*dx<0) return false;
+        if (y+(pattern_lenth-1)*dy>=BOARDSIZE || y-(pattern_lenth-1)*dy>=BOARDSIZE || y+(pattern_lenth-1)*dy<0 || y+(pattern_lenth-1)*dy<0) return false;
+        if (pattern[i] != state[x+i*dx][y+i*dy]) return false;
+    }
+    return true;
 }
 
 Node* apply_action(Node* origin, Point* action) {
@@ -117,7 +195,8 @@ double ucb(double visits, double value, double time, double c) {
 }
 
 Node* choose(Node* root, double time) {
-    Node* iter = root;
+    Node* iter;
+    iter = root;
     while (is_fully_expand(iter)) {
         Node* p = NULL;
         double max=0.;

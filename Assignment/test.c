@@ -33,7 +33,7 @@ void draw(char state[BOARDSIZE][BOARDSIZE]) {
 void input(Board* board) {
     printf("input your action");
     int x,y;
-    scanf("%d %d",&x,&y);
+    scanf("%d,%d",&x,&y);
     update_state(board,x,y,'1');
 }
 

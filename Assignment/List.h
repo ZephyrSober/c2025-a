@@ -23,5 +23,7 @@ Point* pop_action(List* actions);
 List* append(List* list, void* value);
 void print_actions(List* actions);
 ListNode* random_choose(List* list);
+void destroy_list(List* list);
+List* join(List* a, List* b);
 
 #endif //C2025_CHALLENGE_LIST_H
