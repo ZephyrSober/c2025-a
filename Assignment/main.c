@@ -30,6 +30,7 @@ void ai_play() {
         }
     }
     int valid_range[2][2] = {{7,7},{7,7}};
+    get_valid_range(state,valid_range);
     Node* root = create_node(state,valid_range,create_list(0,NULL),NULL,NULL);
     Point* decision = mcts_decide(root);
     go_GameAutoPlaceStone(main_game,decision->x,decision->y);

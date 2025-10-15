@@ -64,10 +64,13 @@ Node* create_node(char state[BOARDSIZE][BOARDSIZE],int valid_range[2][2],List* c
 void get_valid_range(char state[BOARDSIZE][BOARDSIZE],int valid_range[2][2]) {
     for (int i = 0; i!=BOARDSIZE; i++) {
         for (int j = 0; j!=BOARDSIZE; j++) {
-            valid_range[0][0] = (i<=valid_range[0][0]) ? i : valid_range[0][0];
-            valid_range[0][1] = (j<=valid_range[0][1]) ? j : valid_range[0][1];
-            valid_range[1][0] = (i>=valid_range[1][0]) ? i : valid_range[1][0];
-            valid_range[1][1] = (j>=valid_range[1][1]) ? j : valid_range[1][1];
+            if (state[i][j] == '1'||state[i][j] == '2') {
+                valid_range[0][0] = (i<=valid_range[0][0]) ? i : valid_range[0][0];
+                valid_range[0][1] = (j<=valid_range[0][1]) ? j : valid_range[0][1];
+                valid_range[1][0] = (i>=valid_range[1][0]) ? i : valid_range[1][0];
+                valid_range[1][1] = (j>=valid_range[1][1]) ? j : valid_range[1][1];
+            }
+
         }
     }
 }
@@ -156,7 +159,7 @@ bool is_match(char state[BOARDSIZE][BOARDSIZE], int x, int y, int dx, int dy, in
 
 Node* apply_action(Node* origin, Point* action) {
     Node* new_node = create_node(origin->state,origin->valid_range,NULL,origin,action);
-    new_node->state[action->x][action->y] = '2';
+    new_node->state[action->x][action->y] = origin->is_player?'2':'1';
     new_node->valid_range[0][0] = (action->x<=new_node->valid_range[0][0]) ? action->x : new_node->valid_range[0][0];
     new_node->valid_range[0][1] = (action->y<=new_node->valid_range[0][1]) ? action->y : new_node->valid_range[0][1];
     new_node->valid_range[1][0] = (action->x>=new_node->valid_range[1][0]) ? action->x : new_node->valid_range[1][0];
