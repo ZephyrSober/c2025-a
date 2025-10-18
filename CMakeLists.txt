@@ -5,7 +5,7 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 # ============ 在这里添加 raylib 配置 ============
 # 设置 raylib 路径（根据你的实际路径修改）
-set(RAYLIB_PATH "D:/1FILE/Program/cpp/c2025-a/raylib-5.5_win64_mingw-w64")
+set(RAYLIB_PATH "./raylib-5.5_win64_mingw-w64")
 
 # 包含目录
 include_directories(${RAYLIB_PATH}/include)
@@ -50,7 +50,7 @@ add_executable(stack extend_level/stack.c
 )
 add_executable(antipoland extend_level/antipoland.c
 )
-add_executable(MCTS Assignment/MCTS.c
+add_executable(MCTS
         Assignment/strategy.c
         Assignment/strategy.h
         Assignment/List.c

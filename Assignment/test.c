@@ -117,3 +117,12 @@ void test_mcts(){
         printf("\n");
     }
 }
+
+void print_node(Node* node) {
+    for (int i = 0; i!= BOARDSIZE; i++) {
+        for (int j = 0; j!= BOARDSIZE; j++) {
+            printf("%c",node->state[j][i]);
+        }
+        printf("\n");
+    }
+}

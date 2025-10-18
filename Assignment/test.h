@@ -11,6 +11,7 @@ Board* create_empty_board();
 void draw(char state[BOARDSIZE][BOARDSIZE]);
 void input(Board* board);
 void update_state(Board* board, int x ,int y,char player);
+void print_node(Node* node);
 
 void test_get_all_actions();
 void test_is_terminal();

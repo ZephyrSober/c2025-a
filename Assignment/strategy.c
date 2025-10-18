@@ -2,22 +2,34 @@
 #include <complex.h>
 #include <stdlib.h>
 #include "List.h"
+#include "test.h"
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
-
 #include "utils.h"
 #define INF 9999.
-#define ROUNDS 1000
-#define MAXSTEP 5
+#define ROUNDS 10000
+#define MAXSTEP 200
 #define WINCOUNT 5
 #define EXPLORERANGE 1
+#define UBC_C 1.414
 
 Point* mcts_decide(Node* root) {
     for (int i = 0; i!= ROUNDS ;i++) {
-        Node* leaf = choose(root,(double)i);
-        Node* simulate_base = expand(leaf);
         double result = 0;
+        Node* leaf = choose(root,(double)i);
+        if (leaf->latest_action!=NULL) {
+            if (is_terminal(leaf,leaf->latest_action,leaf->is_player?'1':'2')) {
+                result = leaf->is_player?0:1;
+                for (Node* p = leaf; p != NULL; p = p->parant) {
+                    p->visits++;
+                    p->value+=p->is_player?1-result:result;
+                }
+                continue;
+            }
+        }
+        Node* simulate_base = expand(leaf);
+
         if (is_terminal(simulate_base->state,simulate_base->latest_action,simulate_base->is_player?'1':'2')) {
             result = simulate_base->is_player?0:1;
         }else {
@@ -33,12 +45,27 @@ Point* mcts_decide(Node* root) {
     for (int i = 0; i!=root->children->lenth; i++) {
         Node *current_node = to_index(root->children,i)->value;
         double current_visit = current_node->visits;
+        // printf("%lf ",current_visit);
         if (current_visit>=max) {
             max = current_visit;
             p = current_node;
         }
     }
-    return p->latest_action;
+    Point* latest_action = p->latest_action;
+    destroy_tree(root);
+    return latest_action;
+}
+
+void destroy_tree(Node* root) {
+    if (root->children->lenth == 0) {
+        free(root);
+        return;
+    }
+    for (int i = 0; i!= root->children->lenth; i++) {
+        Node* current_node = (Node*)(to_index(root->children,i)->value);
+        destroy_tree(current_node);
+    }
+    free(root);
 }
 
 Node* create_node(char state[BOARDSIZE][BOARDSIZE],int valid_range[2][2],List* children,Node* parent,Point* latest_action) {
@@ -205,12 +232,13 @@ Node* choose(Node* root, double time) {
         double max=0.;
         for (int i = 0; i!=iter->children->lenth; i++) {
             Node *current_node = to_index(iter->children,i)->value;
-            double current_ucb = ucb(current_node->visits,current_node->value,time,sqrt(2.));
+            double current_ucb = ucb(current_node->visits,current_node->value,time,UBC_C);
             if (current_ucb>=max) {
                 max = current_ucb;
                 p = current_node;
             }
         }
+        // printf("max ubc:%lf\n",max);
         iter = p;
     }
     return iter;
@@ -224,12 +252,16 @@ Node* expand(Node* leaf) {
 }
 
 double simulate(Node* simulate_base) {
+    // printf("simulate base\n");
+    // print_node(simulate_base);
     Node* current_node = simulate_base;
     Node* parent = NULL;
     Node* grand_parent = NULL;
     double result = 0;
     int i = 0;
     for (; i!=MAXSTEP;i++) {
+        // printf("step %d\n",i);
+        // print_node(current_node);
         parent = current_node;
         current_node = apply_action(parent,(Point*)(random_choose(parent->untryed_actions)->value));
         if (i>=2) {

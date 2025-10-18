@@ -7,12 +7,12 @@
 // go_ 前缀是模拟命名空间
 
 // 多线程开关（修改后需重编译）
-// #define MULTI_THREAD
-//
-// #ifdef MULTI_THREAD
-// #include <pthread.h>
-// pthread_t logic_thread_id;
-// #endif
+#define MULTI_THREAD
+
+#ifdef MULTI_THREAD
+#include <pthread.h>
+pthread_t logic_thread_id;
+#endif
 
 // 这些本来是写在后面的，但是后来修改代码发现前面也需要，就加个声明（懒得改位置）
 extern go_Game* activated_game;

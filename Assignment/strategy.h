@@ -19,6 +19,7 @@ typedef struct Node Node;
 
 Node* expand(Node* leaf);
 Point* mcts_decide(Node* root);
+void destroy_tree(Node* root);
 Node* choose(Node* root,double time);
 Node* create_node(char state[BOARDSIZE][BOARDSIZE],int valid_range[2][2],List* children,Node* parent,Point* latest_action);
 void get_valid_range(char state[BOARDSIZE][BOARDSIZE],int valid_range[2][2]);
