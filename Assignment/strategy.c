@@ -8,8 +8,8 @@
 #include <stdio.h>
 #include "utils.h"
 #define INF 9999.
-#define ROUNDS 10000
-#define MAXSTEP 200
+#define ROUNDS 2000
+#define MAXSTEP 75
 #define WINCOUNT 5
 #define EXPLORERANGE 1
 #define UBC_C 1.414
@@ -54,6 +54,69 @@ Point* mcts_decide(Node* root) {
     Point* latest_action = p->latest_action;
     destroy_tree(root);
     return latest_action;
+}
+
+Node* choose(Node* root, double time) {
+    Node* iter;
+    iter = root;
+    while (is_fully_expand(iter)) {
+        Node* p = NULL;
+        double max=0.;
+        for (int i = 0; i!=iter->children->lenth; i++) {
+            Node *current_node = to_index(iter->children,i)->value;
+            double current_ucb = ucb(current_node->visits,current_node->value,time,UBC_C);
+            if (current_ucb>=max) {
+                max = current_ucb;
+                p = current_node;
+            }
+        }
+        // printf("max ubc:%lf\n",max);
+        iter = p;
+    }
+    return iter;
+}
+
+Node* expand(Node* leaf) {
+    Point* action = pop_action(leaf->untryed_actions);
+    Node* child = apply_action(leaf,action);
+    append(leaf->children,child);
+    return child;
+}
+
+double simulate(Node* simulate_base) {
+    // printf("simulate base\n");
+    // print_node(simulate_base);
+    Node* current_node = simulate_base;
+    Node* parent = NULL;
+    Node* grand_parent = NULL;
+    double result = 0;
+    int i = 0;
+    for (; i!=MAXSTEP;i++) {
+        // printf("step %d\n",i);
+        // print_node(current_node);
+        parent = current_node;
+        current_node = apply_action(parent,(Point*)(random_choose(parent->untryed_actions)->value));
+        if (i>=2) {
+            grand_parent = parent->parant;
+            free(grand_parent);
+            grand_parent = NULL;
+        }
+        if (is_terminal(current_node->state,current_node->latest_action,current_node->is_player?'1':'2')) {
+            result = current_node->is_player?0:1;
+            if (i==1) {
+                free(current_node);
+                current_node = NULL;
+            }if(i>=2) {
+                free(current_node);
+                free(parent);
+                current_node = NULL;
+                parent = NULL;
+            }
+            return result;
+        }
+    }
+    return 0;
+
 }
 
 void destroy_tree(Node* root) {
@@ -109,15 +172,20 @@ List* get_all_actions(Node* node) {
     //第三优先级：己方双活三（连三返回两个位置，跳三返回中间位置）
     //第四优先级：对方活三（同理）
     //其他：搜索所有空位即可
+    //pattern解释：1：黑棋（对手）2：白棋（ai）3：目标位4：无所谓是墙还是空
     int expand_valid_range[2][2] = {{node->valid_range[0][0]-EXPLORERANGE,node->valid_range[0][1]-EXPLORERANGE},{node->valid_range[1][0]+EXPLORERANGE,node->valid_range[1][1]+EXPLORERANGE}};
     List* actions = create_list(0,NULL);
     //first priority:
     actions = find_pattern(node->state, expand_valid_range,6,"322224");
+    actions = join(actions,find_pattern(node->state, expand_valid_range,5,"22232"));
+    actions = join(actions,find_pattern(node->state, expand_valid_range,5,"23222"));
     actions = join(actions,find_pattern(node->state, expand_valid_range,6,"322223"));
     actions = join(actions,find_pattern(node->state, expand_valid_range,6,"422223"));
     if (actions->lenth != 0) return actions;
     //second priority:
     actions = find_pattern(node->state, expand_valid_range,6,"311114");
+    actions = join(actions,find_pattern(node->state, expand_valid_range,5,"11131"));
+    actions = join(actions,find_pattern(node->state, expand_valid_range,5,"13111"));
     actions = join(actions,find_pattern(node->state, expand_valid_range,6,"411113"));
     actions = join(actions,find_pattern(node->state, expand_valid_range,6,"311113"));
     if (actions->lenth != 0) return actions;
@@ -128,8 +196,8 @@ List* get_all_actions(Node* node) {
     if (actions->lenth != 0) return actions;
     //fourth priority:
     actions = find_pattern(node->state, expand_valid_range,5,"31113");
-    actions = join(actions,find_pattern(node->state, expand_valid_range,6,"322323"));
-    actions = join(actions,find_pattern(node->state, expand_valid_range,6,"323223"));
+    actions = join(actions,find_pattern(node->state, expand_valid_range,6,"311313"));
+    actions = join(actions,find_pattern(node->state, expand_valid_range,6,"313113"));
     if (actions->lenth != 0) return actions;
     //fifth priority
     for (int i = expand_valid_range[0][0] ; i<=expand_valid_range[1][0] ; i++) {
@@ -222,67 +290,4 @@ double ucb(double visits, double value, double time, double c) {
     }
     // printf("%lf\n",value/visits + c*sqrt(log(time)/visits));
     return value/visits + c*sqrt(log(time)/visits);
-}
-
-Node* choose(Node* root, double time) {
-    Node* iter;
-    iter = root;
-    while (is_fully_expand(iter)) {
-        Node* p = NULL;
-        double max=0.;
-        for (int i = 0; i!=iter->children->lenth; i++) {
-            Node *current_node = to_index(iter->children,i)->value;
-            double current_ucb = ucb(current_node->visits,current_node->value,time,UBC_C);
-            if (current_ucb>=max) {
-                max = current_ucb;
-                p = current_node;
-            }
-        }
-        // printf("max ubc:%lf\n",max);
-        iter = p;
-    }
-    return iter;
-}
-
-Node* expand(Node* leaf) {
-    Point* action = pop_action(leaf->untryed_actions);
-    Node* child = apply_action(leaf,action);
-    append(leaf->children,child);
-    return child;
-}
-
-double simulate(Node* simulate_base) {
-    // printf("simulate base\n");
-    // print_node(simulate_base);
-    Node* current_node = simulate_base;
-    Node* parent = NULL;
-    Node* grand_parent = NULL;
-    double result = 0;
-    int i = 0;
-    for (; i!=MAXSTEP;i++) {
-        // printf("step %d\n",i);
-        // print_node(current_node);
-        parent = current_node;
-        current_node = apply_action(parent,(Point*)(random_choose(parent->untryed_actions)->value));
-        if (i>=2) {
-            grand_parent = parent->parant;
-            free(grand_parent);
-            grand_parent = NULL;
-        }
-        if (is_terminal(current_node->state,current_node->latest_action,current_node->is_player?'1':'2')) {
-            result = current_node->is_player?0:1;
-            if (i==1) {
-                free(current_node);
-                current_node = NULL;
-            }if(i>=2) {
-                free(current_node);
-                free(parent);
-                current_node = NULL;
-                parent = NULL;
-            }
-            return result;
-        }
-    }
-    return 0;
-
 }

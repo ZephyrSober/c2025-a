@@ -247,6 +247,7 @@ go_Game* go_NewGame() {
 	_game_init(game);
     return game;
 }
+//用于用户手动设置棋盘
 void go_StartGame(go_Game* game) {
     game->state = GAME_BLACK_TURN;
     game->winner = NULL;
@@ -254,7 +255,7 @@ void go_StartGame(go_Game* game) {
     SignalEmit(&game->game_start);
 }
 void go_ActivateGame(go_Game* game) {
-    activated_game = game;
+    activated_game = game; //此处为全局变量
 }
 bool go_IsGameActivated(go_Game* game) {
     return activated_game == game;

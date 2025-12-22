@@ -1,7 +1,6 @@
 #ifndef GOBANG_H
 #define GOBANG_H
 
-// 英文注释是写代码的时候一起敲的（懒得切输入法），中文的是写完补的
 
 #if (defined(__STDC__) && __STDC_VERSION__ >= 199901L) || (defined(_MSC_VER) && _MSC_VER >= 1800)
     #include <stdbool.h>
@@ -35,7 +34,6 @@ typedef enum go_GameState {
     GAME_ENDED,
     GAME_ERROR, // Reserved for invalid visits.
 } go_GameState;
-
 typedef enum go_PlayerType {
     ROBOT,
     HUMAN,
